@@ -109,7 +109,7 @@ class AzureServerGroupResourceTemplate {
   interface TemplateVariables {}
 
   static class CoreServerGroupTemplateVariables implements TemplateVariables {
-    final String apiVersion = "2018-10-01"
+    final String apiVersion = "2019-03-01"
     String publicIPAddressName = ""
     String publicIPAddressID = ""
     String publicIPAddressType = ""
@@ -523,6 +523,7 @@ class AzureServerGroupResourceTemplate {
    */
   static class NetworkInterfaceConfigurationProperty {
     boolean primary
+    boolean enableIpForwarding
     ArrayList<NetworkInterfaceIPConfiguration> ipConfigurations = []
 
     /**
@@ -531,6 +532,7 @@ class AzureServerGroupResourceTemplate {
      */
     NetworkInterfaceConfigurationProperty(AzureServerGroupDescription description) {
       primary = true
+      enableIpForwarding = description.enableIpForwarding
       ipConfigurations.add(new NetworkInterfaceIPConfiguration(description))
     }
   }
