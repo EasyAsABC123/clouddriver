@@ -72,6 +72,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   Boolean enableInboundNAT = false
   List<VirtualMachineScaleSetDataDisk> dataDisks
   Boolean enableIpForwarding = false
+  Boolean doNotRunExtensionsOnOverprovisionedVMs = false
 
   static class AzureScaleSetSku {
     String name
@@ -197,7 +198,7 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
       if (storageNames) azureSG.storageAccountNames.addAll(storageNames.split(","))
     }
-
+    azureSG.doNotRunExtensionsOnOverprovisionedVMs = scaleSet.doNotRunExtensionsOnOverprovisionedVMs()
     azureSG.region = scaleSet.location()
     azureSG.upgradePolicy = getPolicyFromMode(scaleSet.upgradePolicy().mode().name())
 
