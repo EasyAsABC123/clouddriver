@@ -394,9 +394,11 @@ class AzureServerGroupResourceTemplate {
   static class VirtualMachineScaleSetProperty {
     Map<String, String> upgradePolicy = [:]
     ScaleSetVMProfile virtualMachineProfile
+    Boolean doNotRunExtensionsOnOverprovisionedVMs
 
     VirtualMachineScaleSetProperty(AzureServerGroupDescription description) {
       upgradePolicy["mode"] = description.upgradePolicy.toString()
+      doNotRunExtensionsOnOverprovisionedVMs = description.doNotRunExtensionsOnOverprovisionedVMs
 
       // protocol is the only required setting in both scenarios
       // https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension#settings
@@ -450,6 +452,23 @@ class AzureServerGroupResourceTemplate {
       adminUsername = "[parameters('${vmUserNameParameterName}')]"
       adminPassword = "[parameters('${vmPasswordParameterName}')]"
       customData = "[base64(parameters('customData'))]"
+    }
+  }
+
+  static class ScaleSetOsProfileWindowsConfiguration extends ScaleSetOsProfileProperty implements ScaleSetOsProfile {
+    OsProfileWindowsConfiguration windowsConfiguration
+
+    ScaleSetOsProfileWindowsConfiguration(AzureServerGroupDescription description) {
+      super(description)
+      windowsConfiguration = new OsProfileWindowsConfiguration(description)
+    }
+  }
+
+  static class OsProfileWindowsConfiguration {
+    String timeZone
+
+    OsProfileWindowsConfiguration(AzureServerGroupDescription description) {
+      timeZone = description.windowsTimeZone
     }
   }
 
@@ -646,10 +665,13 @@ class AzureServerGroupResourceTemplate {
         new ScaleSetCustomManagedImageStorageProfile(description) :
         new ScaleSetStorageProfile(description)
 
-      if(description.credentials.useSshPublicKey){
+      if (description.credentials.useSshPublicKey) {
         osProfile = new ScaleSetOsProfileLinuxConfiguration(description)
       }
-      else{
+      else if (description.windowsTimeZone) {
+        osProfile = new ScaleSetOsProfileWindowsConfiguration(description)
+      }
+      else {
         osProfile = new ScaleSetOsProfileProperty(description)
       }
 

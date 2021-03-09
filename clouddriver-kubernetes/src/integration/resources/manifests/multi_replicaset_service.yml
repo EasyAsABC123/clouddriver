@@ -1,24 +1,34 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: ReplicaSet
 metadata:
   name: nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      service: other
   template:
     metadata:
       labels:
-        app: nginx
+        service: other
     spec:
       containers:
         - image: 'index.docker.io/library/nginx:1.14.0'
           name: nginx
           ports:
             - containerPort: 80
-          volumeMounts:
-            - mountPath: /tmp/mounted
-              name: mounted
-      volumes:
-        - name: mounted
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: nginx
+  sessionAffinity: None

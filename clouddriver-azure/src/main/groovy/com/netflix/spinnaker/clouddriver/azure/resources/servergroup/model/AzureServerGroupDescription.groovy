@@ -72,6 +72,8 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
   AzureExtensionHealthSettings healthSettings
   Boolean enableInboundNAT = false
   List<VirtualMachineScaleSetDataDisk> dataDisks
+  String windowsTimeZone
+  Boolean doNotRunExtensionsOnOverprovisionedVMs = false
 
   static class AzureScaleSetSku {
     String name
@@ -196,9 +198,11 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
       if (storageNames) azureSG.storageAccountNames.addAll(storageNames.split(","))
     }
-
+    azureSG.doNotRunExtensionsOnOverprovisionedVMs = scaleSet.doNotRunExtensionsOnOverprovisionedVMs()
     azureSG.region = scaleSet.location()
     azureSG.upgradePolicy = getPolicyFromMode(scaleSet.upgradePolicy().mode().name())
+
+    azureSG.windowsTimeZone = scaleSet.virtualMachineProfile()?.osProfile()?.windowsConfiguration()?.timeZone()
 
     // Get the image reference data
     def storageProfile = scaleSet.virtualMachineProfile()?.storageProfile()
